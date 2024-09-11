@@ -17,7 +17,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { ElMessage } from "element-plus";
 import app_api from '../../../api/app';
 import { useTokenStore } from "../../../store/token"

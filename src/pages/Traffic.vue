@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useRouter } from 'vue-router'
 import app_api, { AppState } from '../api/app';
 import traffic_api, { MonitorDay, MonitorHour, MonitorSecond } from '../api/traffic';
 import { ElMessage } from 'element-plus';
 import { nextTick } from 'vue';
 import { Chart } from 'chart.js/auto';
 import { formatBytes } from '../util/str_util';
+import { useTokenStore } from '../store/token';
 
 const version = ref<string>('')
 app_api.version().then(({data}) => {
@@ -283,14 +285,22 @@ traffic_api.list_traffic_second({start_time: formatDateTime(tenMinutesAgo), end_
   console.log(err)
 })
 
+function logout() {
+    useTokenStore().clearToken()
+    const router = useRouter()
+    router.push({ path: '/login' })
+}
 </script>
 
 <template>
 <div class="traffic">
+    <div style="display: flex; justify-content: end;">
+        <span>监控版本: <code>{{ version }}</code></span>
+        <el-button type="primary" @click="logout()">退出</el-button>
+    </div>
     <el-descriptions title="VPS 配置">
         <el-descriptions-item label="VPS名称">{{ app_state?.config.vps_name }}</el-descriptions-item>
         <el-descriptions-item label="网卡">{{ app_state?.config.network_name }}</el-descriptions-item>
-        <el-descriptions-item label="监控版本">{{ version }}</el-descriptions-item>
         <el-descriptions-item label="日志等级">{{ app_state?.config.log_level }}</el-descriptions-item>
     </el-descriptions>
     <el-descriptions title="流量周期" v-if="app_state && app_state!.cycle">
