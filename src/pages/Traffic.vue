@@ -287,22 +287,22 @@ traffic_api.list_traffic_second({start_time: formatDateTime(tenMinutesAgo), end_
 
 <template>
 <div class="traffic">
-    <div>
-        <p>版本: {{ version }}</p>
-        <p>VPS: {{ app_state?.config.vps_name }}</p>
-        <p>网卡: {{ app_state?.config.network_name }}</p>
-        <p>日志: {{ app_state?.config.log_level }}</p>
-    </div>
-    <div v-if="app_state && app_state!.cycle">
-        <p>流量周期: {{ app_state?.cycle?.cycle_type }}</p>
-        <p>开始时间: {{ app_state?.cycle?.current_cycle_start_date }}</p>
-        <p>结束时间: {{ app_state?.cycle?.current_cycle_end_date }}</p>
-        <p>上行流量: {{ formatBytes(app_state?.cycle?.uplink_traffic_usage) }}</p>
-        <p>下行流量: {{ formatBytes(app_state?.cycle?.downlink_traffic_usage) }}</p>
-        <p>流量限制: {{ formatBytes(app_state?.cycle?.traffic_limit) }}</p>
-        <p>统计方式: {{ app_state?.cycle?.statistic_method }}</p>
-        <p>达限执行: {{ app_state?.config?.traffic_cycle?.exec }}</p>
-    </div>
+    <el-descriptions title="VPS 配置">
+        <el-descriptions-item label="VPS名称">{{ app_state?.config.vps_name }}</el-descriptions-item>
+        <el-descriptions-item label="网卡">{{ app_state?.config.network_name }}</el-descriptions-item>
+        <el-descriptions-item label="监控版本">{{ version }}</el-descriptions-item>
+        <el-descriptions-item label="日志等级">{{ app_state?.config.log_level }}</el-descriptions-item>
+    </el-descriptions>
+    <el-descriptions title="流量周期" v-if="app_state && app_state!.cycle">
+        <el-descriptions-item label="周期类型">{{ app_state?.cycle?.cycle_type }}</el-descriptions-item>
+        <el-descriptions-item label="开始时间">{{ app_state?.cycle?.current_cycle_start_date }}</el-descriptions-item>
+        <el-descriptions-item label="结束时间">{{ app_state?.cycle?.current_cycle_end_date }}</el-descriptions-item>
+        <el-descriptions-item label="上行流量"><el-tag size="small" type="success">{{ formatBytes(app_state?.cycle?.uplink_traffic_usage) }}</el-tag></el-descriptions-item>
+        <el-descriptions-item label="下行流量"><el-tag size="small" type="primary">{{ formatBytes(app_state?.cycle?.downlink_traffic_usage) }}</el-tag></el-descriptions-item>
+        <el-descriptions-item label="流量限制">{{ formatBytes(app_state?.cycle?.traffic_limit) }}</el-descriptions-item>
+        <el-descriptions-item label="统计方式">{{ app_state?.cycle?.statistic_method }}</el-descriptions-item>
+        <el-descriptions-item label="达限执行"><code>{{ app_state?.config?.traffic_cycle?.exec }}</code></el-descriptions-item>
+    </el-descriptions>
     <div>
         <canvas ref="dayChart"></canvas>
         <canvas ref="hourChart"></canvas>
@@ -316,5 +316,6 @@ traffic_api.list_traffic_second({start_time: formatDateTime(tenMinutesAgo), end_
     width: 60%;
     height: 100%;
     margin: auto;
+    margin-top: 10px;
 }
 </style>

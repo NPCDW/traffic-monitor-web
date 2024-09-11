@@ -28,7 +28,9 @@ export interface AppState {
         },
     },
     cycle?: {
-        cycle_type: string,
+        cycle_type: {
+          [key: string]: [number | string, string]
+        },
         current_cycle_start_date: string,
         current_cycle_end_date: string,
         uplink_traffic_usage: number,
@@ -43,9 +45,9 @@ export interface AppState {
 }
 
 enum CycleStatisticMethod {
-    SumInOut,
-    MaxInOut,
-    OnlyOut,
+    SumInOut = '双向计算',
+    MaxInOut = '入出取大',
+    OnlyOut = '只记上行',
 }
 
 class CycleType {
