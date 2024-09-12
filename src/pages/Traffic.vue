@@ -23,10 +23,14 @@ app_api.version().then(({data}) => {
 
 const trafficUsageChart = ref<HTMLCanvasElement | null>(null);
 const cycleUsageChart = ref<HTMLCanvasElement | null>(null);
+const cycleType = ref<CycleType | null>(null)
 const app_state = ref<AppState | null>(null)
 app_api.get_app_state().then(({data}) => {
     if (data.code === 200) {
         app_state.value = data.data
+        if (app_state.value?.cycle) {
+            cycleType.value = new CycleType(app_state.value?.cycle?.cycle_type)
+        }
                 
         nextTick(() => {
             if (trafficUsageChart.value && app_state.value?.cycle) {
@@ -354,37 +358,38 @@ traffic_api.list_traffic_second({start_time: formatDateTime(tenMinutesAgo), end_
   console.log(err)
 })
 
+const router = useRouter()
 function logout() {
     useTokenStore().clearToken()
-    const router = useRouter()
     router.push({ path: '/login' })
 }
 </script>
 
 <template>
 <div class="traffic">
-    <div style="display: flex; justify-content: end;">
-        <span>监控版本: <code>{{ version }}</code></span>
-        <el-button type="primary" @click="logout()">退出</el-button>
-    </div>
-    <el-descriptions title="VPS 配置">
-        <el-descriptions-item label="VPS名称">{{ app_state?.config.vps_name }}</el-descriptions-item>
-        <el-descriptions-item label="网卡">{{ app_state?.config.network_name }}</el-descriptions-item>
-        <el-descriptions-item label="日志等级">{{ app_state?.config.log_level }}</el-descriptions-item>
-    </el-descriptions>
-    <div style="height: 200px; display: flex;">
+    <div style="height: 250px; display: flex;">
         <canvas ref="trafficUsageChart"></canvas>
         <canvas ref="cycleUsageChart"></canvas>
-        <el-descriptions title="流量周期" v-if="app_state && app_state!.cycle">
-            <el-descriptions-item label="周期类型">{{ new CycleType(app_state?.cycle?.cycle_type).type }}</el-descriptions-item>
-            <el-descriptions-item label="开始时间">{{ app_state?.cycle?.current_cycle_start_date }}</el-descriptions-item>
-            <el-descriptions-item label="结束时间">{{ app_state?.cycle?.current_cycle_end_date }}</el-descriptions-item>
-            <el-descriptions-item label="上行流量"><el-tag size="small" type="success">{{ formatBytes(app_state?.cycle?.uplink_traffic_usage) }}</el-tag></el-descriptions-item>
-            <el-descriptions-item label="下行流量"><el-tag size="small" type="primary">{{ formatBytes(app_state?.cycle?.downlink_traffic_usage) }}</el-tag></el-descriptions-item>
-            <el-descriptions-item label="流量限制">{{ formatBytes(app_state?.cycle?.traffic_limit) }}</el-descriptions-item>
-            <el-descriptions-item label="统计方式">{{ cycleStatisticMethodEnum[app_state?.cycle?.statistic_method as "SumInOut" | "MaxInOut" | "OnlyOut"] }}</el-descriptions-item>
-            <el-descriptions-item label="达限执行"><code>{{ app_state?.config?.traffic_cycle?.exec }}</code></el-descriptions-item>
-        </el-descriptions>
+        <div style="flex: auto">
+            <el-descriptions title="VPS 配置" border :column="3">
+                <template #extra>
+                    <el-button type="primary" @click="logout()">退出</el-button>
+                </template>
+                <el-descriptions-item label="VPS名称">{{ app_state?.config.vps_name }}</el-descriptions-item>
+                <el-descriptions-item label="网卡">{{ app_state?.config.network_name }}</el-descriptions-item>
+                <el-descriptions-item label="监控版本">{{ version }}</el-descriptions-item>
+            </el-descriptions>
+            <el-descriptions title="流量周期" v-if="app_state && app_state!.cycle" border :column="3">
+                <el-descriptions-item label="周期类型">{{ cycleType ? cycleType.interval + cycleType.type : '' }}</el-descriptions-item>
+                <el-descriptions-item label="开始日期">{{ app_state?.cycle?.current_cycle_start_date }}</el-descriptions-item>
+                <el-descriptions-item label="结束日期">{{ app_state?.cycle?.current_cycle_end_date }}</el-descriptions-item>
+                <el-descriptions-item label="统计方式">{{ cycleStatisticMethodEnum[app_state?.cycle?.statistic_method as "SumInOut" | "MaxInOut" | "OnlyOut"] }}</el-descriptions-item>
+                <el-descriptions-item label="上行流量"><el-tag size="small" type="success">{{ formatBytes(app_state?.cycle?.uplink_traffic_usage) }}</el-tag></el-descriptions-item>
+                <el-descriptions-item label="下行流量"><el-tag size="small" type="primary">{{ formatBytes(app_state?.cycle?.downlink_traffic_usage) }}</el-tag></el-descriptions-item>
+                <el-descriptions-item label="计入流量">{{ formatBytes(app_state?.cycle?.traffic_usage) + ' / ' + formatBytes(app_state?.cycle?.traffic_limit) }}</el-descriptions-item>
+                <el-descriptions-item label="达限执行"><code>{{ app_state?.config?.traffic_cycle?.exec }}</code></el-descriptions-item>
+            </el-descriptions>
+        </div>
     </div>
     <div>
         <canvas ref="dayChart"></canvas>
