@@ -116,8 +116,8 @@ app_api.get_app_state().then(({data}) => {
   console.log(err)
 })
 
-var today = new Date();
-var thirtyDaysAgo = new Date();
+let today = new Date();
+let thirtyDaysAgo = new Date();
 thirtyDaysAgo.setDate(today.getDate() - 30);
 
 const dayChart = ref<HTMLCanvasElement | null>(null);
@@ -196,9 +196,12 @@ traffic_api.list_traffic_day({start_date: formatDate(thirtyDaysAgo), end_date: f
   console.log(err)
 })
 
+let now = new Date();
+let twentyFourHourAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
 const hourChart = ref<HTMLCanvasElement | null>(null);
 const traffic_hour_list = ref<MonitorHour[]>([])
-traffic_api.list_traffic_hour({day: formatDate(today)}).then(({data}) => {
+traffic_api.list_traffic_hour({start_time: formatDateTime(twentyFourHourAgo), end_time: formatDateTime(now)}).then(({data}) => {
     if (data.code === 200) {
         traffic_hour_list.value = data.data
     } else {
@@ -271,8 +274,7 @@ traffic_api.list_traffic_hour({day: formatDate(today)}).then(({data}) => {
   console.log(err)
 })
 
-var now = new Date();
-var tenMinutesAgo = new Date(now.getTime() - 10 * 60 * 1000);
+let tenMinutesAgo = new Date(now.getTime() - 10 * 60 * 1000);
 
 const secondChart = ref<HTMLCanvasElement | null>(null);
 const traffic_second_list = ref<MonitorSecond[]>([])

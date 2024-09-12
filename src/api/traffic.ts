@@ -41,7 +41,7 @@ const list_traffic_day = (body: {start_date: string, end_date: string}) => {
 /**
  * 查询小时监控数据
  */
-const list_traffic_hour = (body: {day: string}) => {
+const list_traffic_hour = (body: {start_time: string, end_time: string}) => {
     return axios.post<ApiResponse<MonitorHour[]>>("/api/traffic/hour", body);
 };
 
