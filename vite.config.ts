@@ -18,7 +18,7 @@ export default ({mode}) => {
             // 本地跨域代理 https://cn.vitejs.dev/config/server-options.html#server-proxy
             proxy: {
                 "/api": {
-                    target: "https://ifd5k15m-r3b2lz1h-60wwpnui9jn1.c2.mcprev.cn",
+                    target: "https://traffic.sg-e8b5ed71.003021.xyz",
                     changeOrigin: true
                 }
             },

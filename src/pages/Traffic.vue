@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router'
-import app_api, { AppState } from '../api/app';
+import app_api, { AppState, cycleStatisticMethodEnum, CycleType } from '../api/app';
 import traffic_api, { MonitorDay, MonitorHour, MonitorSecond } from '../api/traffic';
 import { ElMessage } from 'element-plus';
 import { nextTick } from 'vue';
 import { Chart } from 'chart.js/auto';
-import { formatBytes } from '../util/str_util';
+import { formatBytes, daysBetweenDates, formatDate, formatDateTime } from '../util/str_util';
 import { useTokenStore } from '../store/token';
 
 const version = ref<string>('')
@@ -21,10 +21,89 @@ app_api.version().then(({data}) => {
   console.log(err)
 })
 
+const trafficUsageChart = ref<HTMLCanvasElement | null>(null);
+const cycleUsageChart = ref<HTMLCanvasElement | null>(null);
 const app_state = ref<AppState | null>(null)
 app_api.get_app_state().then(({data}) => {
     if (data.code === 200) {
         app_state.value = data.data
+                
+        nextTick(() => {
+            if (trafficUsageChart.value && app_state.value?.cycle) {
+                new Chart(trafficUsageChart.value, {
+                    type: 'pie',
+                    data: {
+                        labels: ['已用流量', '未使用流量'],
+                        datasets: [{
+                            data: [app_state.value?.cycle.traffic_usage, app_state.value?.cycle.traffic_limit - app_state.value?.cycle.traffic_usage],
+                            backgroundColor: ['rgba(204, 204, 204, 0.8)', 'rgba(161, 218, 153, 0.8)'],
+                        }]
+                    },
+                    options: {
+                        interaction: {
+                            mode: 'dataset',
+                            intersect: false,
+                        },
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: '流量使用情况'
+                            },
+                            legend: {
+                                display: false,
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    // 自定义 tooltip 内容
+                                    label: function(context) {
+                                        let value = context.parsed;
+                                        return context.label + ' ' + formatBytes(value);
+                                    }
+                                }
+                            }
+                        },
+                    }
+                });
+            }
+            if (cycleUsageChart.value && app_state.value?.cycle) {
+                let total_day = daysBetweenDates(app_state.value?.cycle.current_cycle_start_date, app_state.value?.cycle.current_cycle_end_date) + 1
+                let usage_day = daysBetweenDates(app_state.value?.cycle.current_cycle_start_date, formatDate(new Date())) + 1
+                new Chart(cycleUsageChart.value, {
+                    type: 'pie',
+                    data: {
+                        labels: ['周期已过', '还剩'],
+                        datasets: [{
+                            data: [usage_day, total_day - usage_day],
+                            backgroundColor: ['rgba(204, 204, 204, 0.8)', 'rgba(161, 218, 153, 0.8)'],
+                        }]
+                    },
+                    options: {
+                        interaction: {
+                            mode: 'dataset',
+                            intersect: false,
+                        },
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: '周期剩余情况'
+                            },
+                            legend: {
+                                display: false,
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    // 自定义 tooltip 内容
+                                    label: function(context) {
+                                        let value = context.parsed;
+                                        return context.label + ' ' + value + '天';
+                                    }
+                                }
+                            }
+                        },
+                    }
+                });
+            }
+        })
     } else {
         console.log(data.message)
         ElMessage.error(data.message)
@@ -36,13 +115,6 @@ app_api.get_app_state().then(({data}) => {
 var today = new Date();
 var thirtyDaysAgo = new Date();
 thirtyDaysAgo.setDate(today.getDate() - 30);
-// 格式化日期
-function formatDate(date: Date) {
-    var year = date.getFullYear();
-    var month = ('0' + (date.getMonth() + 1)).slice(-2); // 月份是从0开始的，所以加1，并保证两位数
-    var day = ('0' + date.getDate()).slice(-2);           // 保证日期是两位数
-    return year + '-' + month + '-' + day;
-}
 
 const dayChart = ref<HTMLCanvasElement | null>(null);
 const traffic_day_list = ref<MonitorDay[]>([])
@@ -80,6 +152,10 @@ traffic_api.list_traffic_day({start_date: formatDate(thirtyDaysAgo), end_date: f
                 data: dayDataset,
                 options: {
                     responsive: true,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
                     scales: {
                         y: {
                             ticks: {
@@ -151,6 +227,10 @@ traffic_api.list_traffic_hour({day: formatDate(today)}).then(({data}) => {
                 data: hourDataset,
                 options: {
                     responsive: true,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
                     scales: {
                         y: {
                             ticks: {
@@ -167,7 +247,7 @@ traffic_api.list_traffic_hour({day: formatDate(today)}).then(({data}) => {
                         },
                         title: {
                             display: true,
-                            text: '今天每小时流量统计'
+                            text: '最近24小时流量统计'
                         },
                         tooltip: {
                             callbacks: {
@@ -189,17 +269,6 @@ traffic_api.list_traffic_hour({day: formatDate(today)}).then(({data}) => {
 
 var now = new Date();
 var tenMinutesAgo = new Date(now.getTime() - 10 * 60 * 1000);
-
-// 定义一个格式化日期的函数
-function formatDateTime(datetime: Date) {
-    var year = datetime.getFullYear();
-    var month = ('0' + (datetime.getMonth() + 1)).slice(-2); // 月份是从0开始的，所以加1，并保证两位数
-    var day = ('0' + datetime.getDate()).slice(-2);
-    var hours = ('0' + datetime.getHours()).slice(-2);
-    var minutes = ('0' + datetime.getMinutes()).slice(-2);
-    var second = ('0' + datetime.getSeconds()).slice(-2);
-    return year + '-' + month + '-' + day + 'T' + hours + ':' + minutes + ':' + second;
-}
 
 const secondChart = ref<HTMLCanvasElement | null>(null);
 const traffic_second_list = ref<MonitorSecond[]>([])
@@ -303,16 +372,20 @@ function logout() {
         <el-descriptions-item label="网卡">{{ app_state?.config.network_name }}</el-descriptions-item>
         <el-descriptions-item label="日志等级">{{ app_state?.config.log_level }}</el-descriptions-item>
     </el-descriptions>
-    <el-descriptions title="流量周期" v-if="app_state && app_state!.cycle">
-        <el-descriptions-item label="周期类型">{{ app_state?.cycle?.cycle_type }}</el-descriptions-item>
-        <el-descriptions-item label="开始时间">{{ app_state?.cycle?.current_cycle_start_date }}</el-descriptions-item>
-        <el-descriptions-item label="结束时间">{{ app_state?.cycle?.current_cycle_end_date }}</el-descriptions-item>
-        <el-descriptions-item label="上行流量"><el-tag size="small" type="success">{{ formatBytes(app_state?.cycle?.uplink_traffic_usage) }}</el-tag></el-descriptions-item>
-        <el-descriptions-item label="下行流量"><el-tag size="small" type="primary">{{ formatBytes(app_state?.cycle?.downlink_traffic_usage) }}</el-tag></el-descriptions-item>
-        <el-descriptions-item label="流量限制">{{ formatBytes(app_state?.cycle?.traffic_limit) }}</el-descriptions-item>
-        <el-descriptions-item label="统计方式">{{ app_state?.cycle?.statistic_method }}</el-descriptions-item>
-        <el-descriptions-item label="达限执行"><code>{{ app_state?.config?.traffic_cycle?.exec }}</code></el-descriptions-item>
-    </el-descriptions>
+    <div style="height: 200px; display: flex;">
+        <canvas ref="trafficUsageChart"></canvas>
+        <canvas ref="cycleUsageChart"></canvas>
+        <el-descriptions title="流量周期" v-if="app_state && app_state!.cycle">
+            <el-descriptions-item label="周期类型">{{ new CycleType(app_state?.cycle?.cycle_type).type }}</el-descriptions-item>
+            <el-descriptions-item label="开始时间">{{ app_state?.cycle?.current_cycle_start_date }}</el-descriptions-item>
+            <el-descriptions-item label="结束时间">{{ app_state?.cycle?.current_cycle_end_date }}</el-descriptions-item>
+            <el-descriptions-item label="上行流量"><el-tag size="small" type="success">{{ formatBytes(app_state?.cycle?.uplink_traffic_usage) }}</el-tag></el-descriptions-item>
+            <el-descriptions-item label="下行流量"><el-tag size="small" type="primary">{{ formatBytes(app_state?.cycle?.downlink_traffic_usage) }}</el-tag></el-descriptions-item>
+            <el-descriptions-item label="流量限制">{{ formatBytes(app_state?.cycle?.traffic_limit) }}</el-descriptions-item>
+            <el-descriptions-item label="统计方式">{{ cycleStatisticMethodEnum[app_state?.cycle?.statistic_method as "SumInOut" | "MaxInOut" | "OnlyOut"] }}</el-descriptions-item>
+            <el-descriptions-item label="达限执行"><code>{{ app_state?.config?.traffic_cycle?.exec }}</code></el-descriptions-item>
+        </el-descriptions>
+    </div>
     <div>
         <canvas ref="dayChart"></canvas>
         <canvas ref="hourChart"></canvas>

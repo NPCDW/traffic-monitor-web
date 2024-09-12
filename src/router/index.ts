@@ -22,7 +22,7 @@ const routes = [
 ]
 
 const router = VueRouter.createRouter({
-    history: VueRouter.createWebHistory(import.meta.env.BASE_URL),
+    history: VueRouter.createWebHashHistory(import.meta.env.BASE_URL),
     routes,
 })
 
