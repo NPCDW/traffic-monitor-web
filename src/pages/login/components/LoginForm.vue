@@ -1,7 +1,7 @@
 <template>
   <el-form ref="loginFormRef" :model="loginForm" size="large">
     <el-form-item prop="password">
-      <el-input v-model="loginForm.token" type="password" placeholder="Token" show-password autocomplete="new-password">
+      <el-input v-model="loginForm.token" @keyup.enter="login()" type="password" placeholder="Token" show-password autocomplete="new-password">
         <template #prefix>
           <i-ep-lock />
         </template>
