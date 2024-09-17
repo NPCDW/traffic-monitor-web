@@ -1,4 +1,4 @@
-import {defineConfig} from 'vite'
+import {defineConfig, loadEnv} from 'vite'
 import vue from '@vitejs/plugin-vue'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
@@ -10,15 +10,17 @@ import svgLoader from 'vite-svg-loader'
 // https://vitejs.dev/config/
 export default ({mode}) => {
     console.log(mode)
+    const env = loadEnv(mode, process.cwd(), 'VITE_')
+    console.log(env)
     return defineConfig({
         server: {
             https: false,
-            port: 3030,
+            port: +env.VITE_DEV_SERVER_PORT,
             host: "0.0.0.0",
             // 本地跨域代理 https://cn.vitejs.dev/config/server-options.html#server-proxy
             proxy: {
                 "/api": {
-                    target: "https://traffic.sg-e8b5ed71.003021.xyz",
+                    target: env.VITE_DEV_SERVER_BASE_URL,
                     changeOrigin: true
                 }
             },
