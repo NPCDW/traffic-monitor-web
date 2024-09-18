@@ -1,10 +1,15 @@
 export const formatBytes = (bytes: number, decimals = 2) => {
     if (bytes === 0) return '0 Bytes';
+    let flag = 1;
+    if (bytes < 0) {
+        bytes = -bytes
+        flag = -1;
+    }
     const k = 1024;
     const dm = decimals < 0 ? 0 : decimals;
     const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + (sizes[i] ? sizes[i] : '');
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) * flag + ' ' + (sizes[i] ? sizes[i] : '');
 }
 
 export const daysBetweenDates = (dateStr1: string, dateStr2: string) => {

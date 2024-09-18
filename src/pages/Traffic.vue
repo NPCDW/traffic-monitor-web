@@ -300,7 +300,7 @@ traffic_api.list_traffic_second({start_time: formatDateTime(tenMinutesAgo), end_
                 data: traffic_second_list.value.map((item: MonitorSecond) => item.downlink_traffic_usage),
                 backgroundColor: 'rgba(0,191,255, 0.5)',
                 borderColor: 'rgba(0,191,255, 0.5)',
-                yAxisID: 'y1',
+                yAxisID: 'y',
             }
         ]
     };
@@ -317,6 +317,7 @@ traffic_api.list_traffic_second({start_time: formatDateTime(tenMinutesAgo), end_
                     },
                     scales: {
                         y: {
+                            beginAtZero: true,
                             ticks: {
                                 // 使用自定义的格式化函数
                                 callback: function(value, index, values) {
@@ -324,15 +325,6 @@ traffic_api.list_traffic_second({start_time: formatDateTime(tenMinutesAgo), end_
                                 }
                             }
                         },
-                        y1: {
-                            position: 'right',
-                            ticks: {
-                                // 使用自定义的格式化函数
-                                callback: function(value, index, values) {
-                                    return formatBytes(value as number);
-                                }
-                            }
-                        }
                     },
                     plugins: {
                         legend: {
@@ -365,6 +357,29 @@ function logout() {
     useTokenStore().clearToken()
     router.push({ path: '/login' })
 }
+
+const modifyDataForm = ref({
+    uplink_traffic_usage: 0,
+    downlink_traffic_usage: 0,
+})
+const modifyDataDialogFormVisible = ref(false)
+function modifyData() {
+    traffic_api.modify_data({
+        uplink_traffic_usage: Math.floor(modifyDataForm.value.uplink_traffic_usage * 1024 * 1024 * 1024),
+        downlink_traffic_usage: Math.floor(modifyDataForm.value.downlink_traffic_usage * 1024 * 1024 * 1024)
+    }).then(({data}) => {
+        if (data.code === 200) {
+            traffic_second_list.value = data.data
+            modifyDataDialogFormVisible.value = false
+            router.go(0)
+        } else {
+            console.log(data.message)
+            ElMessage.error(data.message)
+        }
+    }).catch(err => {
+      console.log(err)
+    })
+}
 </script>
 
 <template>
@@ -382,6 +397,9 @@ function logout() {
                 <el-descriptions-item label="监控版本">{{ version }}</el-descriptions-item>
             </el-descriptions>
             <el-descriptions title="流量周期" v-if="app_state && app_state!.cycle" border :column="3">
+                <template #extra>
+                    <el-button type="success" @click="modifyDataDialogFormVisible = true">修正数据</el-button>
+                </template>
                 <el-descriptions-item label="周期类型">{{ cycleType ? cycleType.interval + cycleType.type : '' }}</el-descriptions-item>
                 <el-descriptions-item label="开始日期">{{ app_state?.cycle?.current_cycle_start_date }}</el-descriptions-item>
                 <el-descriptions-item label="结束日期">{{ app_state?.cycle?.current_cycle_end_date }}</el-descriptions-item>
@@ -399,6 +417,25 @@ function logout() {
         <canvas ref="secondChart"></canvas>
     </div>
 </div>
+
+<el-dialog v-model="modifyDataDialogFormVisible" title="修正流量数据" width="500">
+    <el-form :model="modifyDataForm">
+      <el-form-item label="上行流量(GB)">
+        <el-input-number v-model="modifyDataForm.uplink_traffic_usage" autocomplete="off" :precision="2" :controls="false" />
+      </el-form-item>
+      <el-form-item label="下行流量(GB)">
+        <el-input-number v-model="modifyDataForm.downlink_traffic_usage" autocomplete="off" :precision="2" :controls="false" />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button @click="modifyDataDialogFormVisible = false">Cancel</el-button>
+        <el-button type="primary" @click="modifyData()">
+          Confirm
+        </el-button>
+      </div>
+    </template>
+  </el-dialog>
 </template>
 
 <style scoped>

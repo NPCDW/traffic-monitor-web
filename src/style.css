@@ -2,6 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-.emoji {
-    font-family: 'ui-sans-serif', 'system-ui', 'sans-serif', 'Twemoji Mozilla'
+.el-descriptions__header {
+    margin: 8px 0 !important;
 }

@@ -52,6 +52,13 @@ const list_traffic_second = (body: {start_time: string, end_time: string}) => {
     return axios.post<ApiResponse<MonitorSecond[]>>("/api/traffic/second", body);
 };
 
+/**
+ * 修正数据
+ */
+const modify_data = (body: {uplink_traffic_usage: number, downlink_traffic_usage: number}) => {
+    return axios.post<ApiResponse<MonitorSecond[]>>("/api/traffic/modify_data", body);
+};
+
 export default {
-    list_traffic_day, list_traffic_hour, list_traffic_second
+    list_traffic_day, list_traffic_hour, list_traffic_second, modify_data
 }
