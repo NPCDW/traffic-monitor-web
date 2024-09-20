@@ -71,7 +71,7 @@ app_api.get_app_state().then(({data}) => {
             }
             if (cycleUsageChart.value && app_state.value?.cycle) {
                 let total_day = daysBetweenDates(app_state.value?.cycle.current_cycle_start_date, app_state.value?.cycle.current_cycle_end_date) + 1
-                let usage_day = daysBetweenDates(app_state.value?.cycle.current_cycle_start_date, formatDate(new Date())) + 1
+                let usage_day = daysBetweenDates(app_state.value?.cycle.current_cycle_start_date, formatDate(new Date()))
                 new Chart(cycleUsageChart.value, {
                     type: 'pie',
                     data: {
