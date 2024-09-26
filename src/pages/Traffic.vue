@@ -37,7 +37,7 @@ app_api.get_app_state().then(({data}) => {
                 new Chart(trafficUsageChart.value, {
                     type: 'pie',
                     data: {
-                        labels: ['已用流量', '未使用流量'],
+                        labels: ['已用流量', '剩余流量'],
                         datasets: [{
                             data: [app_state.value?.cycle.traffic_usage, app_state.value?.cycle.traffic_limit - app_state.value?.cycle.traffic_usage],
                             backgroundColor: ['rgba(204, 204, 204, 0.8)', 'rgba(161, 218, 153, 0.8)'],
@@ -75,7 +75,7 @@ app_api.get_app_state().then(({data}) => {
                 new Chart(cycleUsageChart.value, {
                     type: 'pie',
                     data: {
-                        labels: ['周期已过', '还剩'],
+                        labels: ['已过', '还剩'],
                         datasets: [{
                             data: [usage_day, total_day - usage_day],
                             backgroundColor: ['rgba(204, 204, 204, 0.8)', 'rgba(161, 218, 153, 0.8)'],
