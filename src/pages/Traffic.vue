@@ -420,6 +420,9 @@ function modifyData() {
 
 <el-dialog v-model="modifyDataDialogFormVisible" title="修正流量数据" width="500">
     <el-form :model="modifyDataForm">
+      <el-form-item label="">
+        <span>示例: 上行少统计了1.23GB, 则上行填写+1.23, 上行多统计了4.56GB, 则上行填写-4.56</span>
+      </el-form-item>
       <el-form-item label="上行流量(GB)">
         <el-input-number v-model="modifyDataForm.uplink_traffic_usage" autocomplete="off" :precision="2" :controls="false" />
       </el-form-item>
