@@ -8,13 +8,12 @@ $:
       # 开发环境启动后会执行的任务
       stages:
         - name: install dep
-          script: npm i
+          script: pnpm i
       # 开发环境销毁前会执行该任务
       endStages:
         - name: end stage
           script: echo "end stage"
 
-main:
   push:
     - imports: https://cnb.cool/my-codespace/envs/-/blob/main/github-secret.yml
       stages:
