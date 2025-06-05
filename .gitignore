@@ -12,6 +12,7 @@ dist
 dist-ssr
 *.local
 *.code-workspace
+.pnpm-store
 
 # Editor directories and files
 .vscode/*

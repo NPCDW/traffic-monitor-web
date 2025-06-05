@@ -380,6 +380,22 @@ function modifyData() {
       console.log(err)
     })
 }
+const send_today_statistics_loading = ref(false)
+function send_today_statistics() {
+    send_today_statistics_loading.value = true
+    traffic_api.send_today_statistics().then(({data}) => {
+        if (data.code === 200) {
+            ElMessage.success('发送成功')
+        } else {
+            console.log(data.message)
+            ElMessage.error(data.message)
+        }
+    }).catch(err => {
+      console.log(err)
+    }).finally(() => {
+        send_today_statistics_loading.value = false
+    })
+}
 </script>
 
 <template>
@@ -398,6 +414,7 @@ function modifyData() {
             </el-descriptions>
             <el-descriptions title="流量周期" v-if="app_state && app_state!.cycle" border :column="3">
                 <template #extra>
+                    <el-button type="primary" :loading="send_today_statistics_loading" @click="send_today_statistics()">发送今日统计</el-button>
                     <el-button type="success" @click="modifyDataDialogFormVisible = true">修正数据</el-button>
                 </template>
                 <el-descriptions-item label="周期类型">{{ cycleType ? cycleType.interval + cycleType.type : '' }}</el-descriptions-item>

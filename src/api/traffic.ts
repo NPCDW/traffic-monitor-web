@@ -59,6 +59,13 @@ const modify_data = (body: {uplink_traffic_usage: number, downlink_traffic_usage
     return axios.post<ApiResponse<MonitorSecond[]>>("/api/traffic/modify_data", body);
 };
 
+/**
+ * 发送今日统计数据
+ */
+const send_today_statistics = () => {
+    return axios.post<ApiResponse<MonitorSecond[]>>("/api/traffic/send_today_statistics");
+};
+
 export default {
-    list_traffic_day, list_traffic_hour, list_traffic_second, modify_data
+    list_traffic_day, list_traffic_hour, list_traffic_second, modify_data, send_today_statistics
 }
